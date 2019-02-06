@@ -6,8 +6,8 @@ namespace ABInspector
     [System.Serializable]
     public class ABINspectorItemData
     {
-        public string UUID;
-        public string MD5;
+        public string GUID;
+        public string MetaMD5;
 
         [System.NonSerialized]
         public bool isOld = false;

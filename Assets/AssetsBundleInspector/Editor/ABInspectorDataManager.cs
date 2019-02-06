@@ -29,7 +29,7 @@ namespace ABInspector
                     dataMap = new Dictionary<string, ABINspectorItemData>();
                     foreach (var item in m_dataCollection.items)
                     {
-                        dataMap[item.UUID] = item;
+                        dataMap[item.GUID] = item;
                     }
                 }
                 inited = true;
@@ -43,7 +43,8 @@ namespace ABInspector
         {
             foreach (var item in m_dataCollection.items)
             {
-
+                //通过guid获取文件名，然后读取对应的.meta文件
+                //并计算MD5和储存的MD5比较，如果不同则标记
             }
         }
 
