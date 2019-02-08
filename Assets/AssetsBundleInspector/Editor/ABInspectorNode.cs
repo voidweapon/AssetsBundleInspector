@@ -12,6 +12,8 @@ namespace ABInspector
         /// </summary>
         /// <value>The position.</value>
         public Vector2 Position { get; set; }
+        public Vector2 Size { get; set; }
+        public Texture2D Icon { get; set; }
 
         private string m_name = string.Empty;
         public string Name { get { return m_name; } }

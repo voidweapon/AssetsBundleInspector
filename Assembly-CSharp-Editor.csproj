@@ -63,8 +63,10 @@
   <ItemGroup>
     <Compile Include="Assets\AssetsBundleInspector\Editor\ABAssetObj.cs" />
     <Compile Include="Assets\AssetsBundleInspector\Editor\ABInspectorDataManager.cs" />
+    <Compile Include="Assets\AssetsBundleInspector\Editor\ABInspectorEditor.cs" />
     <Compile Include="Assets\AssetsBundleInspector\Editor\ABInspectorLink.cs" />
     <Compile Include="Assets\AssetsBundleInspector\Editor\ABInspectorNode.cs" />
+    <Compile Include="Assets\AssetsBundleInspector\Editor\ABInspectorWindow.cs" />
     <Compile Include="Assets\AssetsBundleInspector\Editor\EditorData\ABINspectorItemData.cs" />
     <Compile Include="Assets\Constellation\Editor\Build\BuildPackage.cs" />
     <Compile Include="Assets\Constellation\Editor\ClipBoard.cs" />

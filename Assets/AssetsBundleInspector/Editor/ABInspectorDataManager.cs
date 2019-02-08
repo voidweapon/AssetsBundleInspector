@@ -13,7 +13,7 @@ namespace ABInspector
     {
         private readonly string dataFilePath = Path.GetFullPath(Application.dataPath + "../AssetBundleInspectorData/");
         private ItemDataCollection m_dataCollection = null;
-        private Dictionary<string, ABINspectorItemData> dataMap = null;
+        private Dictionary<string, ABInspectorItemData> dataMap = null;
         private bool inited = false;
         /// <summary>
         /// 加载资源文件
@@ -26,7 +26,7 @@ namespace ABInspector
                 {
                     string data = reader.ReadToEnd();
                     m_dataCollection = JsonUtility.FromJson<ItemDataCollection>(data);
-                    dataMap = new Dictionary<string, ABINspectorItemData>();
+                    dataMap = new Dictionary<string, ABInspectorItemData>();
                     foreach (var item in m_dataCollection.items)
                     {
                         dataMap[item.GUID] = item;
