@@ -7,12 +7,7 @@ namespace ABInspector
     /// </summary>
     public class ViewNode
     {
-        /// <summary>
-        /// Gets or sets the position of the View Node.
-        /// </summary>
-        /// <value>The position.</value>
-        public Vector2 Position { get; set; }
-        public Vector2 Size { get; set; }
+        public Rect Rect { get; set; }
         public Texture2D Icon { get; set; }
 
         private string m_name = string.Empty;
@@ -23,6 +18,15 @@ namespace ABInspector
 
         private List<Link> m_outLinks = new List<Link>();
         public List<Link> OutLinks { get { return m_outLinks; } }
+
+        private string m_guid;
+        public string GUID { get { return m_guid; } }
+
+        public ViewNode(string name, string guid)
+        {
+            m_name = name;
+            m_guid = guid;
+        }
     }
 
 }

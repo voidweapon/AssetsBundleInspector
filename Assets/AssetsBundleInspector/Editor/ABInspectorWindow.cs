@@ -19,7 +19,7 @@ namespace ABInspector
         public static void ShowWindow()
         {
             WindowInstance = EditorWindow.GetWindow<ABInspectorWindow>(false, "ABInspectorWindow");
-            WindowInstance.minSize = new Vector2(600.0f, 300.0f);
+            WindowInstance.minSize = new Vector2(1200.0f, 600.0f);
             WindowInstance.wantsMouseMove = true;
             WindowInstance.Show();
         }
@@ -53,20 +53,26 @@ namespace ABInspector
             _zoomArea = new Rect(0, 0, position.width - 35, position.height - 35);
             EditorZoomArea.Begin(_zoom, _zoomArea);
 
-            GUI.Box(new Rect(0.0f - _zoomCoordsOrigin.x, 0.0f - _zoomCoordsOrigin.y, 100.0f, 25.0f), "Zoomed Box");
+            //GUI.Box(new Rect(0.0f - _zoomCoordsOrigin.x, 0.0f - _zoomCoordsOrigin.y, 100.0f, 25.0f), "Zoomed Box");
 
             // You can also use GUILayout inside the zoomed area.
-            GUILayout.BeginArea(new Rect(300.0f - _zoomCoordsOrigin.x, 70.0f - _zoomCoordsOrigin.y, 130.0f, 50.0f));
-            GUILayout.Button("Zoomed Button 1");
-            GUILayout.Button("Zoomed Button 2");
-            GUILayout.EndArea();
+            //GUILayout.BeginArea(new Rect(300.0f - _zoomCoordsOrigin.x, 70.0f - _zoomCoordsOrigin.y, 130.0f, 50.0f));
+            //GUILayout.Button("Zoomed Button 1");
+            //GUILayout.Button("Zoomed Button 2");
+            //GUILayout.EndArea();
 
             GUI.BeginGroup(new Rect(0.0f - _zoomCoordsOrigin.x, 0.0f - _zoomCoordsOrigin.y, 10000f, 10000f));
-            //GUI.Button(new Rect(0, 0, 50, 50), "aaa");
-            DrawNode();
-            DrawLink();
+            GUI.Button(new Rect(0, 0, 50, 50), "aaa");
+            GUI.Button(new Rect(-25, 100, 50, 50), "aaa");
+            //DrawNode();
+            //DrawLink();
+            BeginWindows();
             if (m_abEditor != null)
-                m_abEditor.OnGUI();
+                m_abEditor.DrawNode();
+            EndWindows();
+            if (m_abEditor != null)
+                m_abEditor.DrawLink();
+
             GUI.EndGroup();
 
             EditorZoomArea.End();
