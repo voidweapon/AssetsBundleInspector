@@ -12,6 +12,7 @@ namespace ABInspector
         private const string editorPath = "Assets/Constellation/Editor/EditorAssets/";
         private Vector2 editorScrollPos = Vector2.zero;
         private Vector2 editorScrollSize = new Vector2(500, 500);
+        private Rect VisualWindowRect;
         private Rect LayoutPosition = Rect.zero;
         private ABInspectorEditor m_abEditor = null;
 
@@ -21,6 +22,7 @@ namespace ABInspector
             WindowInstance = EditorWindow.GetWindow<ABInspectorWindow>(false, "ABInspectorWindow");
             WindowInstance.minSize = new Vector2(1200.0f, 600.0f);
             WindowInstance.wantsMouseMove = true;
+            WindowInstance.titleContent = new GUIContent("ABInspector");
             WindowInstance.Show();
         }
         private void Awake()
@@ -50,7 +52,8 @@ namespace ABInspector
         {
             // Within the zoom area all coordinates are relative to the top left corner of the zoom area
             // with the width and height being scaled versions of the original/unzoomed area's width and height.
-            _zoomArea = new Rect(0, 0, position.width - 35, position.height - 35);
+            VisualWindowRect = new Rect(0, 0, position.width - 200, position.height);
+            _zoomArea = VisualWindowRect;
             EditorZoomArea.Begin(_zoom, _zoomArea);
 
             //GUI.Box(new Rect(0.0f - _zoomCoordsOrigin.x, 0.0f - _zoomCoordsOrigin.y, 100.0f, 25.0f), "Zoomed Box");
@@ -62,16 +65,19 @@ namespace ABInspector
             //GUILayout.EndArea();
 
             GUI.BeginGroup(new Rect(0.0f - _zoomCoordsOrigin.x, 0.0f - _zoomCoordsOrigin.y, 10000f, 10000f));
-            GUI.Button(new Rect(0, 0, 50, 50), "aaa");
-            GUI.Button(new Rect(-25, 100, 50, 50), "aaa");
+            //GUI.Button(new Rect(0, 0, 50, 50), "aaa");
+            //GUI.Button(new Rect(-25, 100, 50, 50), "aaa");
             //DrawNode();
             //DrawLink();
-            BeginWindows();
+
             if (m_abEditor != null)
+            {
+                BeginWindows();
                 m_abEditor.DrawNode();
-            EndWindows();
-            if (m_abEditor != null)
+                EndWindows();
+
                 m_abEditor.DrawLink();
+            }
 
             GUI.EndGroup();
 
@@ -135,7 +141,7 @@ namespace ABInspector
 
         private void DrawBackgroundUI()
         {
-            LayoutPosition = new Rect(0, 35, position.width - 35, position.height - 35);
+            LayoutPosition = VisualWindowRect;
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.BeginVertical();

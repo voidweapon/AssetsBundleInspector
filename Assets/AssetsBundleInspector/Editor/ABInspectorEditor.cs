@@ -98,7 +98,6 @@ namespace ABInspector
                     links.Add(reDependencylink);
                 }
             }
-
         }
 
         private void HandleChildNode(ABInspectorItemData node) {
