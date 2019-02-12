@@ -16,6 +16,8 @@ namespace ABInspector
         private Rect LayoutPosition = Rect.zero;
         private ABInspectorEditor m_abEditor = null;
 
+        private Object selectObj = null;
+
         [MenuItem("Tools/ABInspector")]
         public static void ShowWindow()
         {
@@ -28,12 +30,15 @@ namespace ABInspector
         private void Awake()
         {
             m_abEditor = new ABInspectorEditor();
+            m_abEditor.Init();
             Debug.Log("Awake");
         }
         private void OnDestroy()
         {
+            m_abEditor.OnDestory();
             m_abEditor = null;
             WindowInstance = null;
+            selectObj = null;
             Debug.Log("OnDestroy");
         }
         private const float kZoomMin = 0.1f;
@@ -69,9 +74,14 @@ namespace ABInspector
             //GUI.Button(new Rect(-25, 100, 50, 50), "aaa");
             //DrawNode();
             //DrawLink();
-
-            if (m_abEditor != null)
+            if (m_abEditor != null && m_abEditor.Ready)
             {
+                //if( Selection.assetGUIDs.Length > 0 &&
+                //    string.Equals(selectItemGUID, Selection.assetGUIDs[0]) == false)
+                //{
+                //    selectItemGUID = Selection.assetGUIDs[0];
+                //    m_abEditor.SelectNode(selectItemGUID);
+                //}
                 BeginWindows();
                 m_abEditor.DrawNode();
                 EndWindows();
@@ -186,39 +196,60 @@ namespace ABInspector
         }
 
 
-        Rect nodeRect = new Rect(20, 20, 300, 300);
-        private void DrawNode()
+        //Rect nodeRect = new Rect(20, 20, 300, 300);
+        //private void DrawNode()
+        //{
+        //    BeginWindows();
+        //    int i = 0;
+
+        //    GUIStyle NoteStyle = GUI.skin.GetStyle("VCS_StickyNote");
+        //    nodeRect = GUI.Window(i, nodeRect, DrawNodeContent, "node", NoteStyle);
+        //    EndWindows();
+        //}
+        //private void DrawNodeContent(int id)
+        //{
+        //    GUI.Label(new Rect(10, 20, 100, 20), "1212");
+        //}
+
+        //private void DrawLink()
+        //{
+        //    Color color = Color.red;
+
+        //    Vector3 startPos = new Vector3(300, 300, 0);
+        //    Vector3 endPos = new Vector3(400, 520, 0);
+
+        //    Vector3 startTan = startPos + Vector3.right * 50;
+        //    Vector3 endTan = endPos + Vector3.left * 50;
+
+        //    var distance = Vector3.Distance(startPos, endPos);
+        //    if (distance < 100)
+        //    {
+        //        startTan = startPos + Vector3.right * (distance * 0.5f);
+        //        endTan = endPos + Vector3.left * (distance * 0.5f);
+        //    }
+
+        //    Handles.DrawBezier(startPos, endPos, startTan, endTan, color, null, 5);
+        //}
+
+        private void OnSelectionChange()
         {
-            BeginWindows();
-            int i = 0;
-
-            GUIStyle NoteStyle = GUI.skin.GetStyle("VCS_StickyNote");
-            nodeRect = GUI.Window(i, nodeRect, DrawNodeContent, "node", NoteStyle);
-            EndWindows();
-        }
-        private void DrawNodeContent(int id)
-        {
-            GUI.Label(new Rect(10, 20, 100, 20), "1212");
-        }
-
-        private void DrawLink()
-        {
-            Color color = Color.red;
-
-            Vector3 startPos = new Vector3(300, 300, 0);
-            Vector3 endPos = new Vector3(400, 520, 0);
-
-            Vector3 startTan = startPos + Vector3.right * 50;
-            Vector3 endTan = endPos + Vector3.left * 50;
-
-            var distance = Vector3.Distance(startPos, endPos);
-            if (distance < 100)
+            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+            if (Selection.objects.Length > 0 &&
+                string.Equals(selectObj, Selection.objects[0]) == false)
             {
-                startTan = startPos + Vector3.right * (distance * 0.5f);
-                endTan = endPos + Vector3.left * (distance * 0.5f);
+                selectObj = Selection.objects[0];
+                string guid;
+                long localid;
+                if(AssetDatabase.TryGetGUIDAndLocalFileIdentifier(selectObj, out guid, out localid))
+                {
+                    m_abEditor.SelectNode(guid);
+                    Repaint();
+                }
             }
-
-            Handles.DrawBezier(startPos, endPos, startTan, endTan, color, null, 5);
+            stopwatch.Stop();
+            System.TimeSpan timeSpan = stopwatch.Elapsed;
+            Debug.Log(timeSpan.TotalMilliseconds);
         }
     }
 

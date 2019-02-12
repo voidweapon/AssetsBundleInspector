@@ -2,73 +2,102 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.IO;
 
 namespace ABInspector
 {
     public class ABInspectorEditor
     {
+        public bool Ready { get { return dataManager.Ready; } }
+
         private ViewNode selectNode = null;
         private List<ViewNode> nodes;
         private List<Link> links;
         private Queue<ABInspectorItemData> handleQueque = null;
         private GUIStyle NodeStyle = null;
+        private ABInspectorDataManager dataManager = null;
+        //测试数据
         private ABInspectorItemData selectItem = null;
         private List<ABInspectorItemData> m_testData = null; 
+
         public ABInspectorEditor()
         {
             nodes = new List<ViewNode>();
             links = new List<Link>();
+            dataManager = new ABInspectorDataManager();
             handleQueque = new Queue<ABInspectorItemData>();
-            //root
-            m_testData = new List<ABInspectorItemData>();
-            selectItem = new ABInspectorItemData();
-            selectItem.Dependency = new List<string>();
-            selectItem.ReverseDependency = new List<string>();
-            selectItem.GUID = "root1";
-            m_testData.Add(selectItem);
-            //parent1-1 parent1-2
-            var parent1_1 = new ABInspectorItemData();
-            parent1_1.GUID = "parent1_1";
-            parent1_1.Dependency = new List<string>();
-            parent1_1.ReverseDependency = new List<string>();
-            selectItem.ReverseDependency.Add(parent1_1.GUID);
-            m_testData.Add(parent1_1);
 
-            var parent1_2 = new ABInspectorItemData();
-            parent1_2.GUID = "parent1_2";
-            parent1_2.Dependency = new List<string>();
-            parent1_2.ReverseDependency = new List<string>();
-            selectItem.ReverseDependency.Add(parent1_2.GUID);
-            m_testData.Add(parent1_2);
-            //child 1-1 1-2
-            var child1_1 = new ABInspectorItemData();
-            child1_1.GUID = "child1_1";
-            child1_1.Dependency = new List<string>();
-            child1_1.ReverseDependency = new List<string>();
-            selectItem.Dependency.Add(child1_1.GUID);
-            m_testData.Add(child1_1);
+            #region TEST
+            ////root
+            //m_testData = new List<ABInspectorItemData>();
+            //selectItem = new ABInspectorItemData();
+            //selectItem.Dependency = new List<string>();
+            //selectItem.ReverseDependency = new List<string>();
+            //selectItem.GUID = "root1";
+            //m_testData.Add(selectItem);
+            ////parent1-1 parent1-2
+            //var parent1_1 = new ABInspectorItemData();
+            //parent1_1.GUID = "parent1_1";
+            //parent1_1.Dependency = new List<string>();
+            //parent1_1.ReverseDependency = new List<string>();
+            //selectItem.ReverseDependency.Add(parent1_1.GUID);
+            //m_testData.Add(parent1_1);
 
-            var child1_2 = new ABInspectorItemData();
-            child1_2.GUID = "child1_2";
-            child1_2.Dependency = new List<string>();
-            child1_2.ReverseDependency = new List<string>();
-            selectItem.Dependency.Add(child1_2.GUID);
-            m_testData.Add(child1_2);
-            //child 2-1
-            var child2_1 = new ABInspectorItemData();
-            child2_1.GUID = "child2_1";
-            child2_1.Dependency = new List<string>();
-            child2_1.ReverseDependency = new List<string>();
-            child1_1.Dependency.Add(child2_1.GUID);
-            m_testData.Add(child2_1);
+            //var parent1_2 = new ABInspectorItemData();
+            //parent1_2.GUID = "parent1_2";
+            //parent1_2.Dependency = new List<string>();
+            //parent1_2.ReverseDependency = new List<string>();
+            //selectItem.ReverseDependency.Add(parent1_2.GUID);
+            //m_testData.Add(parent1_2);
+            ////child 1-1 1-2
+            //var child1_1 = new ABInspectorItemData();
+            //child1_1.GUID = "child1_1";
+            //child1_1.Dependency = new List<string>();
+            //child1_1.ReverseDependency = new List<string>();
+            //selectItem.Dependency.Add(child1_1.GUID);
+            //m_testData.Add(child1_1);
 
-            SelectNode(selectItem);
-            int a = 1;
-            Debug.Log(a);
+            //var child1_2 = new ABInspectorItemData();
+            //child1_2.GUID = "child1_2";
+            //child1_2.Dependency = new List<string>();
+            //child1_2.ReverseDependency = new List<string>();
+            //selectItem.Dependency.Add(child1_2.GUID);
+            //m_testData.Add(child1_2);
+            ////child 2-1
+            //var child2_1 = new ABInspectorItemData();
+            //child2_1.GUID = "child2_1";
+            //child2_1.Dependency = new List<string>();
+            //child2_1.ReverseDependency = new List<string>();
+            //child1_1.Dependency.Add(child2_1.GUID);
+            //m_testData.Add(child2_1);
+
+            //SelectNode(selectItem);
+            //int a = 1;
+            //Debug.Log(a); 
+            #endregion
         }
-         
+
+        public void Init()
+        {
+            dataManager.Init();
+        }
+        public void OnDestory()
+        {
+            dataManager.Dispose();
+        }
+        
+        public void SelectNode(string GUID)
+        {
+            ABInspectorItemData node = dataManager.GetItemDataByGUID(GUID);
+            if(node != null)
+            {
+                SelectNode(dataManager.GetItemDataByGUID(GUID));
+            }
+        }
         public void SelectNode(ABInspectorItemData selectData)
         {
+            if (selectData == null) return;
+
             if(nodes != null)
             {
                 nodes.Clear();
@@ -101,7 +130,7 @@ namespace ABInspector
         }
 
         private void HandleChildNode(ABInspectorItemData node) {
-            if(node.Dependency != null && node.Dependency.Count > 0)
+            if(node.Dependency != null)
             {
                 //记录当前深度
                 int depth = 0;
@@ -135,7 +164,7 @@ namespace ABInspector
 
         private void HandleParentNode(ABInspectorItemData node)
         {
-            if(node.ReverseDependency != null && node.ReverseDependency.Count > 0)
+            if(node.ReverseDependency != null)
             {
                 //记录当前深度
                 int depth = -1;
@@ -176,8 +205,8 @@ namespace ABInspector
         /// <param name="guid">GUID.</param>
         ABInspectorItemData GetItemByGUID(string guid)
         {
-            return m_testData.Find(x => x.GUID == guid);
-            //return null;
+            //return m_testData.Find(x => x.GUID == guid);
+            return dataManager.GetItemDataByGUID(guid);
         }
 
         ViewNode GetViewNodeByGUID(string guid)
@@ -187,8 +216,10 @@ namespace ABInspector
 
         void AddViewNode(ABInspectorItemData data, int depth, int breadth, int totalBreadth)
         {
+            string name = Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(data.GUID));
             Debug.LogFormat("depth:{0}, breadth:{1} node:{2}", depth, breadth, data.GUID);
-            ViewNode viewNode = new ViewNode(data.GUID, data.GUID);
+
+            ViewNode viewNode = new ViewNode(name, data.GUID);
             float offsetX = 80F;
             float offsetY = 10F;
             Vector2 size = new Vector2(150F, 80F);
