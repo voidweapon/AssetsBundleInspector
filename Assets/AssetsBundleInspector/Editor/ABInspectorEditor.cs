@@ -203,7 +203,7 @@ namespace ABInspector
         /// </summary>
         /// <returns>The item by GUID.</returns>
         /// <param name="guid">GUID.</param>
-        ABInspectorItemData GetItemByGUID(string guid)
+        public ABInspectorItemData GetItemByGUID(string guid)
         {
             //return m_testData.Find(x => x.GUID == guid);
             return dataManager.GetItemDataByGUID(guid);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 
 namespace ABInspector
 {
@@ -15,6 +16,10 @@ namespace ABInspector
         private Rect VisualWindowRect;
         private Rect LayoutPosition = Rect.zero;
         private ABInspectorEditor m_abEditor = null;
+
+        private TreeViewState OrganizationTreeViewState = null;
+        private ABInspectorOrganizationTreeView OrganizationTreeView = null;
+        private Rect OrganizationTreeViewRect = Rect.zero;
 
         private Object selectObj = null;
 
@@ -31,6 +36,13 @@ namespace ABInspector
         {
             m_abEditor = new ABInspectorEditor();
             m_abEditor.Init();
+
+            OrganizationTreeViewState = new TreeViewState();
+            var headerState = ABInspectorOrganizationTreeView.CreateDefaultMultiColumnHeaderState();
+            OrganizationTreeView = new ABInspectorOrganizationTreeView(OrganizationTreeViewState, headerState);
+            OrganizationTreeView.GetABInspectorItemDataByGUID = m_abEditor.GetItemByGUID;
+            OrganizationTreeView.Reload();
+
             Debug.Log("Awake");
         }
         private void OnDestroy()
@@ -39,6 +51,9 @@ namespace ABInspector
             m_abEditor = null;
             WindowInstance = null;
             selectObj = null;
+            OrganizationTreeViewState = null;
+            OrganizationTreeView = null;
+
             Debug.Log("OnDestroy");
         }
         private const float kZoomMin = 0.1f;
@@ -57,7 +72,7 @@ namespace ABInspector
         {
             // Within the zoom area all coordinates are relative to the top left corner of the zoom area
             // with the width and height being scaled versions of the original/unzoomed area's width and height.
-            VisualWindowRect = new Rect(0, 0, position.width - 200, position.height);
+            VisualWindowRect = new Rect(0, 0, position.width - 300, position.height);
             _zoomArea = VisualWindowRect;
             EditorZoomArea.Begin(_zoom, _zoomArea);
 
@@ -88,7 +103,6 @@ namespace ABInspector
 
                 m_abEditor.DrawLink();
             }
-
             GUI.EndGroup();
 
             EditorZoomArea.End();
@@ -96,9 +110,14 @@ namespace ABInspector
 
         private void DrawNonZoomArea()
         {
-            GUI.Box(new Rect(0.0f, 0.0f, 600.0f, 50.0f), "Adjust zoom of middle box with slider or mouse wheel.\nMove zoom area dragging with middle mouse button or Alt+left mouse button.");
-            _zoom = EditorGUI.Slider(new Rect(0.0f, 50.0f, 600.0f, 25.0f), _zoom, kZoomMin, kZoomMax);
-            GUI.Box(new Rect(0.0f, 300.0f - 25.0f, 600.0f, 25.0f), "Unzoomed Box");
+            //GUI.Box(new Rect(0.0f, 0.0f, 600.0f, 50.0f), "Adjust zoom of middle box with slider or mouse wheel.\nMove zoom area dragging with middle mouse button or Alt+left mouse button.");
+            //_zoom = EditorGUI.Slider(new Rect(0.0f, 50.0f, 600.0f, 25.0f), _zoom, kZoomMin, kZoomMax);
+            //GUI.Box(new Rect(0.0f, 300.0f - 25.0f, 600.0f, 25.0f), "Unzoomed Box");
+            if (OrganizationTreeView != null)
+            {
+                OrganizationTreeViewRect = new Rect(position.width - 300, 0, 300, position.height);
+                OrganizationTreeView.OnGUI(OrganizationTreeViewRect);
+            }
         }
 
         private void HandleEvents()
@@ -144,7 +163,7 @@ namespace ABInspector
             // floating point imprecision in the scaling. Therefore, it is recommended to draw the zoom
             // area first and then draw everything else so that there is no undesired overlap.
             DrawZoomArea();
-            //DrawNonZoomArea();
+            DrawNonZoomArea();
 
         }
 
@@ -241,11 +260,14 @@ namespace ABInspector
                 selectObj = Selection.objects[0];
                 string guid;
                 long localid;
-                if(AssetDatabase.TryGetGUIDAndLocalFileIdentifier(selectObj, out guid, out localid))
+                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(selectObj, out guid, out localid))
                 {
                     m_abEditor.SelectNode(guid);
+                    OrganizationTreeView.ShowSelectNodeOrganization(guid);
+                    OrganizationTreeView.Reload();
                     Repaint();
                 }
+
             }
             stopwatch.Stop();
             System.TimeSpan timeSpan = stopwatch.Elapsed;
