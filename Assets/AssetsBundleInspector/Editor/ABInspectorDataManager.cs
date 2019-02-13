@@ -15,6 +15,7 @@ namespace ABInspector
         private readonly string dataFilePath = Path.GetFullPath(Application.dataPath + "./../AssetBundleInspectorData/");
         private ItemDataCollection m_dataCollection = null;
         private Dictionary<string, ABInspectorItemData> dataMap = null;
+        private Dictionary<string, string> currentFilesMd5 = null;
         public bool Ready { get {return m_ready; } }
        
         private bool inited = false;
@@ -36,11 +37,6 @@ namespace ABInspector
             if(File.Exists(dataFilePath + "ABData.json") == false)
             {
                 Directory.CreateDirectory(dataFilePath);
-                m_dataCollection = new ItemDataCollection()
-                {
-                    items = new List<ABInspectorItemData>(),
-                };
-                dataMap = new Dictionary<string, ABInspectorItemData>();
                 GenerateDependencyMap();
             }
             else
@@ -55,13 +51,18 @@ namespace ABInspector
                         dataMap[item.GUID] = item;
                     }
                 }
-                //TODO:文件增删检测
-
+                //文件增删检测
+                bool filesChange = CheckFileSystem();
                 //校验文件
-                VerifyAssetsMD5();
+                bool md5Change = VerifyAssetsMD5();
+                if(filesChange || md5Change)
+                {
+                    SaveDataFile();
+                }
             }
             m_ready = true;
         }
+
         private void SaveDataFile()
         {
             using (StreamWriter writer = new StreamWriter(dataFilePath + "ABData.json"))
@@ -74,13 +75,16 @@ namespace ABInspector
         /// <summary>
         /// 验证每个文件是否被更改过
         /// </summary>
-        public void VerifyAssetsMD5() 
+        public bool VerifyAssetsMD5() 
         {
             string path = string.Empty;
+            int index = 0;
+            bool needSave = false;
             foreach (var item in m_dataCollection.items)
             {
                 //通过guid获取文件名，然后读取对应的.meta文件
                 //并计算MD5和储存的MD5比较，如果不同则标记
+                EditorUtility.DisplayProgressBar("VerifyAssetsMD5", path, (index++ * 1f) / (m_dataCollection.items.Count * 1f));
                 path = AssetDatabase.GUIDToAssetPath(item.GUID);
                 if (path.Contains("SampleScene"))
                 {
@@ -97,9 +101,12 @@ namespace ABInspector
                 if (item.isOld)
                 {
                     Debug.LogFormat("item[{0}] is Old", item.GUID);
+                    needSave = true;
                     GetNodeDependency(path, item.GUID);
                 }
             }
+            EditorUtility.ClearProgressBar();
+            return needSave;
         }
 
         public ABInspectorItemData GetItemDataByGUID(string guid)
@@ -112,6 +119,7 @@ namespace ABInspector
             return null;
         }
 
+
         /// <summary>
         /// 生成资源依赖关系
         /// 记录正向直接引用和反向直接引用
@@ -119,6 +127,10 @@ namespace ABInspector
         /// </summary>
         public void GenerateDependencyMap()
         {
+            m_dataCollection = new ItemDataCollection()
+            {
+                items = new List<ABInspectorItemData>(),
+            };
             dataMap = new Dictionary<string, ABInspectorItemData>();
 
             var guids = AssetDatabase.FindAssets("", new string[] { "Assets" });
@@ -194,6 +206,70 @@ namespace ABInspector
             };
         }
 
+        private bool CheckFileSystem()
+        {
+            var guids = AssetDatabase.FindAssets("", new string[] { "Assets" });
+            string path = string.Empty;
+            int index = 0;
+
+            List<string> currentFiles = new List<string>();
+            List<string> storedFiles = new List<string>(dataMap.Keys);
+
+            foreach (var nodeGUID in guids)
+            {
+                path = AssetDatabase.GUIDToAssetPath(nodeGUID);
+                if (path.Contains(".") == false) continue;
+                if (path.Contains(".manifest") == true) continue;
+                if (path.Contains("/Editor/")) continue;
+                EditorUtility.DisplayProgressBar("Check File", path, (index++ * 1f) / (guids.Length * 1f));
+                currentFiles.Add(nodeGUID);
+            }
+            IEnumerable<string> subFiles = storedFiles.Except(currentFiles);
+            IEnumerable<string> addFiles = currentFiles.Except(storedFiles);
+            ABInspectorItemData itemNode = null;
+            ABInspectorItemData childItem = null;
+            index = 0;
+            int Total = subFiles.Count();
+            foreach (var subItem in subFiles)
+            {
+                EditorUtility.DisplayProgressBar("Remove Item", path, (index++ * 1f) / (Total * 1f));
+                if (dataMap.TryGetValue(subItem, out itemNode))
+                {
+                    //删除正向引用
+                    foreach (var dpyGUID in itemNode.Dependency)
+                    {
+                        if(dataMap.TryGetValue(dpyGUID, out childItem))
+                        {
+                            childItem.ReverseDependency.Remove(subItem);
+                        }
+                    }
+                    //删除逆向引用
+                    foreach (var dpyGUID in itemNode.ReverseDependency)
+                    {
+                        if (dataMap.TryGetValue(dpyGUID, out childItem))
+                        {
+                            childItem.Dependency.Remove(subItem);
+                        }
+                    }
+                }
+                dataMap.Remove(subItem);
+                m_dataCollection.items.Remove(itemNode);
+            }
+
+            index = 0;
+            Total = addFiles.Count();
+            foreach (var addItem in addFiles)
+            {
+                EditorUtility.DisplayProgressBar("Remove Item", path, (index++ * 1f) / (Total * 1f));
+                path = AssetDatabase.GUIDToAssetPath(addItem);
+                GetNodeDependency(path, addItem);
+            }
+            EditorUtility.ClearProgressBar();
+
+            bool needSave = subFiles.Any()|| addFiles.Any();
+            return needSave;
+        }
+
         #region MD5 Function
         /// <summary>
         /// 计算文件的MD5值，用于比较文件是否被更改
@@ -267,6 +343,11 @@ namespace ABInspector
                     m_dataCollection = null;
                     dataMap.Clear();
                     dataMap = null;
+                    if(currentFilesMd5 != null)
+                    {
+                        currentFilesMd5.Clear();
+                        currentFilesMd5 = null;
+                    }
                 }
 
                 // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
