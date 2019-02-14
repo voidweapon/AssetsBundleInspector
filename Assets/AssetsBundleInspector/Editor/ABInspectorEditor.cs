@@ -182,17 +182,18 @@ namespace ABInspector
                 //记录当前的广度
                 int breadth = 0;
                 Queue<ViewNode> parentQueue = new Queue<ViewNode>();
+
                 //记录下一层的节点总数
                 int childCount = node.ReverseDependency.Count;
+                ABInspectorItemData current = null;
+                ViewNode viewNode = null;
+
                 foreach (var guid in node.ReverseDependency)
                 {
                     handleQueque.Enqueue(GetItemByGUID(guid));
+                    parentQueue.Enqueue(nodes[0]);
                 }
 
-                ABInspectorItemData current = null;
-                ViewNode viewNode = null;
-                //用于连接根节点
-                parentQueue.Enqueue(nodes[0]);
                 while (handleQueque.Count != 0)
                 {
                     current = handleQueque.Dequeue();
