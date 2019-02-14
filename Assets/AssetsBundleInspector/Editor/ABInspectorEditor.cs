@@ -17,6 +17,8 @@ namespace ABInspector
         private GUIStyle NodeStyle = null;
         private GUIStyle NodeHoverStyle = null;
         private ABInspectorDataManager dataManager = null;
+        private Vector2 NodeOffest = new Vector2(80F, 10F);
+        private Vector2 NodeSize = new Vector2(150F, 80F);
         //测试数据
         private ABInspectorItemData selectItem = null;
         private List<ABInspectorItemData> m_testData = null; 
@@ -111,27 +113,33 @@ namespace ABInspector
             HandleChildNode(selectData);
             //处理父节点
             HandleParentNode(selectData);
-            ////处理节点link
-            //foreach (var node in nodes)
-            //{
-            //    var itemData = GetItemByGUID(node.GUID);
-            //    foreach (var dependency in itemData.Dependency)
-            //    {
-            //        var dependecyNode = GetViewNodeByGUID(dependency);
-            //        var dependencylink = new Link(node, dependecyNode);
-            //        links.Add(dependencylink);
-            //    }
-            //    foreach (var reDependency in itemData.ReverseDependency)
-            //    {
-            //        var reDependecyNode = GetViewNodeByGUID(reDependency);
-            //        var reDependencylink = new Link(reDependecyNode, node);
-            //        links.Add(reDependencylink);
-            //    }
-            //}
+
+
+            float minX = float.MaxValue;
+            float minY = float.MaxValue;
+            //float maxX = float.MinValue;
+            //float maxY = float.MinValue;
+            foreach (var item in nodes)
+            {
+                if (item.Rect.xMin < minX) minX = item.Rect.xMin;
+                if (item.Rect.yMin < minY) minY = item.Rect.yMin;
+
+                //if (item.Rect.xMax > maxX) maxX = item.Rect.xMax;
+                //if (item.Rect.yMax < maxY) maxY = item.Rect.yMax;
+            }
+
+            Vector2 offset = Vector2.zero;
+            offset.x = minX < 0 ? Mathf.Abs(minX) : 0;
+            offset.y = minY < 0 ? Mathf.Abs(minY) : 0;
+
+            foreach (var item in nodes)
+            {
+                item.Rect = new Rect(item.Rect.position + offset, item.Rect.size);
+            }
         }
 
         private void HandleChildNode(ABInspectorItemData node) {
-            if(node.Dependency != null)
+            if (node.Dependency != null)
             {
                 //记录当前深度
                 int depth = 0;
@@ -175,12 +183,13 @@ namespace ABInspector
 
         private void HandleParentNode(ABInspectorItemData node)
         {
-            if(node.ReverseDependency != null)
+            if (node.ReverseDependency != null)
             {
                 //记录当前深度
                 int depth = -1;
                 //记录当前的广度
                 int breadth = 0;
+
                 Queue<ViewNode> parentQueue = new Queue<ViewNode>();
 
                 //记录下一层的节点总数
@@ -243,25 +252,22 @@ namespace ABInspector
             Debug.LogFormat("depth:{0}, breadth:{1} node:{2}", depth, breadth, data.GUID);
 
             ViewNode viewNode = new ViewNode(name, data.GUID);
-            float offsetX = 80F;
-            float offsetY = 10F;
+
             int halfBreadth = totalBreadth / 2;
 
-            Vector2 size = new Vector2(150F, 80F);
             Vector2 position;
             if (totalBreadth % 2 == 0)
             {
                 int index = (breadth - halfBreadth);
                 index = index >= 0 ? index + 1 : index;
-                position = new Vector2(depth * (size.x + offsetX), index * (size.y + offsetY));
+                position = new Vector2(depth * (NodeSize.x + NodeOffest.x), index * (NodeSize.y + NodeOffest.y));
             }
             else
             {
-                position = new Vector2(depth * (size.x + offsetX), (breadth - halfBreadth) * (size.y + offsetY));
+                position = new Vector2(depth * (NodeSize.x + NodeOffest.x), (breadth - halfBreadth) * (NodeSize.y + NodeOffest.y));
             }
 
-            position += new Vector2(600f, 300f);
-            viewNode.Rect = new Rect(position, size);
+            viewNode.Rect = new Rect(position, NodeSize);
 
             nodes.Add(viewNode);
             return viewNode;
