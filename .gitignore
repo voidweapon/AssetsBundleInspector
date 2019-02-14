@@ -3,5 +3,7 @@ Temp
 obj
 Packages
 AssetBundleInspectorData
+Logs
 .vs
-*.log
+*.csproj
+*.sln
