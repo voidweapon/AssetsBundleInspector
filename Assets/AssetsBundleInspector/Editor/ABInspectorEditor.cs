@@ -15,6 +15,7 @@ namespace ABInspector
         private List<Link> links;
         private Queue<ABInspectorItemData> handleQueque = null;
         private GUIStyle NodeStyle = null;
+        private GUIStyle NodeHoverStyle = null;
         private ABInspectorDataManager dataManager = null;
         //测试数据
         private ABInspectorItemData selectItem = null;
@@ -110,23 +111,23 @@ namespace ABInspector
             HandleChildNode(selectData);
             //处理父节点
             HandleParentNode(selectData);
-            //处理节点link
-            foreach (var node in nodes)
-            {
-                var itemData = GetItemByGUID(node.GUID);
-                foreach (var dependency in itemData.Dependency)
-                {
-                    var dependecyNode = GetViewNodeByGUID(dependency);
-                    var dependencylink = new Link(node, dependecyNode);
-                    links.Add(dependencylink);
-                }
-                foreach (var reDependency in itemData.ReverseDependency)
-                {
-                    var reDependecyNode = GetViewNodeByGUID(reDependency);
-                    var reDependencylink = new Link(reDependecyNode, node);
-                    links.Add(reDependencylink);
-                }
-            }
+            ////处理节点link
+            //foreach (var node in nodes)
+            //{
+            //    var itemData = GetItemByGUID(node.GUID);
+            //    foreach (var dependency in itemData.Dependency)
+            //    {
+            //        var dependecyNode = GetViewNodeByGUID(dependency);
+            //        var dependencylink = new Link(node, dependecyNode);
+            //        links.Add(dependencylink);
+            //    }
+            //    foreach (var reDependency in itemData.ReverseDependency)
+            //    {
+            //        var reDependecyNode = GetViewNodeByGUID(reDependency);
+            //        var reDependencylink = new Link(reDependecyNode, node);
+            //        links.Add(reDependencylink);
+            //    }
+            //}
         }
 
         private void HandleChildNode(ABInspectorItemData node) {
@@ -138,19 +139,29 @@ namespace ABInspector
                 int breadth = 0;
                 //记录下一层的节点总数
                 int childCount = 0;
+                Queue<ViewNode> parentQueue = new Queue<ViewNode>();
                 handleQueque.Enqueue(node);
                 ABInspectorItemData current = null;
+                ViewNode viewNode = null;
                 childCount = handleQueque.Count;
                 while (handleQueque.Count != 0)
                 {
                     current = handleQueque.Dequeue();
+                    //用depth，breadth和当前层节点数量绘制当前节点
+                    viewNode = AddViewNode(current, depth, breadth, childCount);
+                    if(parentQueue.Count > 0)
+                    {
+                        var link = new Link(parentQueue.Dequeue(), viewNode);
+                        links.Add(link);
+                    }
+                    breadth++;
+
                     foreach (var guid in current.Dependency)
                     {
                         handleQueque.Enqueue(GetItemByGUID(guid));
+                        parentQueue.Enqueue(viewNode);
                     }
-                    //用depth，breadth和当前层节点数量绘制当前节点
-                    AddViewNode(current, depth, breadth, childCount);
-                    breadth ++;
+
                     if (breadth == childCount)
                     {
                         //一层绘制完毕,此时队列里都是下一层节点
@@ -170,6 +181,7 @@ namespace ABInspector
                 int depth = -1;
                 //记录当前的广度
                 int breadth = 0;
+                Queue<ViewNode> parentQueue = new Queue<ViewNode>();
                 //记录下一层的节点总数
                 int childCount = node.ReverseDependency.Count;
                 foreach (var guid in node.ReverseDependency)
@@ -178,15 +190,25 @@ namespace ABInspector
                 }
 
                 ABInspectorItemData current = null;
+                ViewNode viewNode = null;
+                //用于连接根节点
+                parentQueue.Enqueue(nodes[0]);
                 while (handleQueque.Count != 0)
                 {
                     current = handleQueque.Dequeue();
+                    viewNode = AddViewNode(current, depth, breadth, childCount);
+                    if (parentQueue.Count > 0)
+                    {
+                        var link = new Link(viewNode, parentQueue.Dequeue());
+                        links.Add(link);
+                    }
+                    breadth++;
                     foreach (var guid in current.ReverseDependency)
                     {
                         handleQueque.Enqueue(GetItemByGUID(guid));
+                        parentQueue.Enqueue(viewNode);
                     }
-                    AddViewNode(current, depth, breadth, childCount);
-                    breadth++;
+
                     if(breadth == childCount)
                     {
                         //一层绘制完毕,此时队列里都是下一层节点
@@ -214,7 +236,7 @@ namespace ABInspector
             return nodes.Find(x => x.GUID == guid);
         }
 
-        void AddViewNode(ABInspectorItemData data, int depth, int breadth, int totalBreadth)
+        ViewNode AddViewNode(ABInspectorItemData data, int depth, int breadth, int totalBreadth)
         {
             string name = Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(data.GUID));
             Debug.LogFormat("depth:{0}, breadth:{1} node:{2}", depth, breadth, data.GUID);
@@ -222,12 +244,26 @@ namespace ABInspector
             ViewNode viewNode = new ViewNode(name, data.GUID);
             float offsetX = 80F;
             float offsetY = 10F;
+            int halfBreadth = totalBreadth / 2;
+
             Vector2 size = new Vector2(150F, 80F);
-            Vector2 position = new Vector2(depth *(size.x + offsetX), breadth * (size.y + offsetY));
+            Vector2 position;
+            if (totalBreadth % 2 == 0)
+            {
+                int index = (breadth - halfBreadth);
+                index = index >= 0 ? index + 1 : index;
+                position = new Vector2(depth * (size.x + offsetX), index * (size.y + offsetY));
+            }
+            else
+            {
+                position = new Vector2(depth * (size.x + offsetX), (breadth - halfBreadth) * (size.y + offsetY));
+            }
+
             position += new Vector2(600f, 300f);
             viewNode.Rect = new Rect(position, size);
 
             nodes.Add(viewNode);
+            return viewNode;
         }
 
         public void DrawNode()
@@ -240,10 +276,21 @@ namespace ABInspector
                     margin = new RectOffset(0, 0, -5, 0)
                 }; 
             }
+            if(NodeHoverStyle == null)
+            {
+                NodeHoverStyle = new GUIStyle(GUI.skin.GetStyle("flow node 0 on"))
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    margin = new RectOffset(0, 0, -5, 0)
+                };
+            }
+
+            //高亮根节点
             int index = 0;
             foreach (var item in nodes)
             {
-                GUI.Window(index++, item.Rect, NodeWindowFun, item.Name, NodeStyle);
+                GUI.Window(index, item.Rect, NodeWindowFun, item.Name, index == 0 ? NodeHoverStyle : NodeStyle);
+                index++;
             }
         }
 
