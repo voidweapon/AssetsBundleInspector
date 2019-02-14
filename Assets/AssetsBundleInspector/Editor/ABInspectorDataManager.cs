@@ -15,7 +15,8 @@ namespace ABInspector
         private readonly string dataFilePath = Path.GetFullPath(Application.dataPath + "./../AssetBundleInspectorData/");
         private ItemDataCollection m_dataCollection = null;
         private Dictionary<string, ABInspectorItemData> dataMap = null;
-        private Dictionary<string, string> currentFilesMd5 = null;
+        private Dictionary<string, string> fileGUID2PathMap = null;
+        private Dictionary<string, string> filePath2GUIDMap = null;
         public bool Ready { get {return m_ready; } }
        
         private bool inited = false;
@@ -34,7 +35,10 @@ namespace ABInspector
 
         private void LoadDataFile()
         {
-            if(File.Exists(dataFilePath + "ABData.json") == false)
+            fileGUID2PathMap = new Dictionary<string, string>();
+            filePath2GUIDMap = new Dictionary<string, string>();
+
+            if (File.Exists(dataFilePath + "ABData.json") == false)
             {
                 Directory.CreateDirectory(dataFilePath);
                 GenerateDependencyMap();
@@ -60,6 +64,8 @@ namespace ABInspector
                     SaveDataFile();
                 }
             }
+            fileGUID2PathMap.Clear();
+            filePath2GUIDMap.Clear();
             m_ready = true;
         }
 
@@ -85,7 +91,7 @@ namespace ABInspector
                 //通过guid获取文件名，然后读取对应的.meta文件
                 //并计算MD5和储存的MD5比较，如果不同则标记
                 EditorUtility.DisplayProgressBar("VerifyAssetsMD5", path, (index++ * 1f) / (m_dataCollection.items.Count * 1f));
-                path = AssetDatabase.GUIDToAssetPath(item.GUID);
+                path = GUID2Path(item.GUID);
                 if (path.Contains("SampleScene"))
                 {
                     Debug.Log(1);
@@ -140,7 +146,7 @@ namespace ABInspector
 
             foreach (var nodeGUID in guids)
             {
-                path = AssetDatabase.GUIDToAssetPath(nodeGUID);
+                path = GUID2Path(nodeGUID);
                 if (path.Contains(".") == false) continue;
                 if (path.Contains(".manifest") == true) continue;
                 if (path.Contains("/Editor/")) continue;
@@ -169,7 +175,7 @@ namespace ABInspector
             depsPathAry = AssetDatabase.GetDependencies(path, false);
             foreach (var dpdcPath in depsPathAry)
             {
-                dpdcGUID = AssetDatabase.AssetPathToGUID(dpdcPath);
+                dpdcGUID = Path2GUID(dpdcPath);
                 //去掉自身引用
                 if (dpdcGUID == nodeGUID) continue;
 
@@ -206,6 +212,32 @@ namespace ABInspector
             };
         }
 
+        private string GUID2Path(string guid)
+        {
+            string path;
+            if(fileGUID2PathMap.TryGetValue(guid, out path))
+            {
+                return path;
+            }
+            path = AssetDatabase.GUIDToAssetPath(guid);
+            fileGUID2PathMap[guid] = path;
+            filePath2GUIDMap[path] = guid;
+            return path;
+        }
+
+        private string Path2GUID(string path)
+        {
+            string guid;
+            if(filePath2GUIDMap.TryGetValue(path, out guid))
+            {
+                return guid;
+            }
+            guid = AssetDatabase.AssetPathToGUID(path);
+            filePath2GUIDMap[path] = guid;
+            fileGUID2PathMap[guid] = path;
+            return guid;
+        }
+
         private bool CheckFileSystem()
         {
             var guids = AssetDatabase.FindAssets("", new string[] { "Assets" });
@@ -217,7 +249,7 @@ namespace ABInspector
 
             foreach (var nodeGUID in guids)
             {
-                path = AssetDatabase.GUIDToAssetPath(nodeGUID);
+                path = GUID2Path(nodeGUID);
                 if (path.Contains(".") == false) continue;
                 if (path.Contains(".manifest") == true) continue;
                 if (path.Contains("/Editor/")) continue;
@@ -261,7 +293,7 @@ namespace ABInspector
             foreach (var addItem in addFiles)
             {
                 EditorUtility.DisplayProgressBar("Remove Item", path, (index++ * 1f) / (Total * 1f));
-                path = AssetDatabase.GUIDToAssetPath(addItem);
+                path = GUID2Path(addItem);
                 GetNodeDependency(path, addItem);
             }
             EditorUtility.ClearProgressBar();
@@ -343,11 +375,12 @@ namespace ABInspector
                     m_dataCollection = null;
                     dataMap.Clear();
                     dataMap = null;
-                    if(currentFilesMd5 != null)
-                    {
-                        currentFilesMd5.Clear();
-                        currentFilesMd5 = null;
-                    }
+
+                    fileGUID2PathMap.Clear();
+                    fileGUID2PathMap = null;
+
+                    filePath2GUIDMap.Clear();
+                    filePath2GUIDMap = null;
                 }
 
                 // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
