@@ -19,6 +19,7 @@ namespace ABInspector
         private ABInspectorDataManager dataManager = null;
         private Vector2 NodeOffest = new Vector2(80F, 10F);
         private Vector2 NodeSize = new Vector2(150F, 80F);
+        private Vector2 NodeIconSize = new Vector2(50F, 50F);
         //测试数据
         private ABInspectorItemData selectItem = null;
         private List<ABInspectorItemData> m_testData = null; 
@@ -199,10 +200,12 @@ namespace ABInspector
 
         ViewNode AddViewNode(ABInspectorItemData data, int depth, int breadth, int totalBreadth)
         {
-            string name = Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(data.GUID));
+            string path = AssetDatabase.GUIDToAssetPath(data.GUID);
+            string name = Path.GetFileNameWithoutExtension(path);
             Debug.LogFormat("depth:{0}, breadth:{1} node:{2}", depth, breadth, data.GUID);
 
             ViewNode viewNode = new ViewNode(name, data.GUID);
+            viewNode.Icon = AssetDatabase.GetCachedIcon(path) as Texture2D;
 
             int halfBreadth = totalBreadth / 2;
 
@@ -230,16 +233,16 @@ namespace ABInspector
             {
                 NodeStyle = new GUIStyle(GUI.skin.GetStyle("flow node 0"))
                 {
-                    alignment = TextAnchor.MiddleCenter,
-                    margin = new RectOffset(0, 0, -5, 0)
+                    alignment = TextAnchor.UpperCenter,
+                    margin = new RectOffset(0, 0, 0, 0)
                 }; 
             }
             if(NodeHoverStyle == null)
             {
                 NodeHoverStyle = new GUIStyle(GUI.skin.GetStyle("flow node 0 on"))
                 {
-                    alignment = TextAnchor.MiddleCenter,
-                    margin = new RectOffset(0, 0, -5, 0)
+                    alignment = TextAnchor.UpperCenter,
+                    margin = new RectOffset(0, 0, 0, 0)
                 };
             }
 
@@ -275,7 +278,12 @@ namespace ABInspector
 
         private void NodeWindowFun(int windowID)
         {
-
+            var node = nodes[windowID];
+            if(node.Icon != null)
+            {
+                GUI.DrawTexture(new Rect((node.Rect.width - NodeIconSize.x)/2, node.Rect.height - NodeIconSize.y, NodeIconSize.x, NodeIconSize.y), node.Icon);
+            }
+            
         }
     }
 }
