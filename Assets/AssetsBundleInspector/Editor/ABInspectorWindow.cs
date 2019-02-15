@@ -10,7 +10,7 @@ namespace ABInspector
     {
         private Texture2D Background = null;
         public static ABInspectorWindow WindowInstance;
-        private const string editorPath = "Assets/Constellation/Editor/EditorAssets/";
+        private const string editorPath = "Assets/AssetsBundleInspector/Editor/EditorAssets/";
         private Vector2 editorScrollPos = Vector2.zero;
         private Vector2 editorScrollSize = new Vector2(500, 500);
         private Rect VisualWindowRect;
