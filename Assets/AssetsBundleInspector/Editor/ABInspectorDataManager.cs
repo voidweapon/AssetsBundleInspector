@@ -92,10 +92,6 @@ namespace ABInspector
                 //并计算MD5和储存的MD5比较，如果不同则标记
                 EditorUtility.DisplayProgressBar("VerifyAssetsMD5", path, (index++ * 1f) / (m_dataCollection.items.Count * 1f));
                 path = GUID2Path(item.GUID);
-                if (path.Contains("SampleScene"))
-                {
-                    Debug.Log(1);
-                }
                 using (StreamReader reader = new StreamReader(path))
                 {
                     string data = reader.ReadToEnd();
