@@ -76,7 +76,6 @@ namespace ABInspector
             _zoomArea = VisualWindowRect;
             EditorZoomArea.Begin(_zoom, _zoomArea);
 
-            //GUI.Box(new Rect(0.0f - _zoomCoordsOrigin.x, 0.0f - _zoomCoordsOrigin.y, 100.0f, 25.0f), "Zoomed Box");
 
             // You can also use GUILayout inside the zoomed area.
             //GUILayout.BeginArea(new Rect(300.0f - _zoomCoordsOrigin.x, 70.0f - _zoomCoordsOrigin.y, 130.0f, 50.0f));
@@ -85,18 +84,10 @@ namespace ABInspector
             //GUILayout.EndArea();
 
             GUI.BeginGroup(new Rect(0.0f - _zoomCoordsOrigin.x, 0.0f - _zoomCoordsOrigin.y, 10000f, 10000f));
-            //GUI.Button(new Rect(0, 0, 50, 50), "aaa");
-            //GUI.Button(new Rect(-25, 100, 50, 50), "aaa");
-            //DrawNode();
-            //DrawLink();
+
             if (m_abEditor != null && m_abEditor.Ready)
             {
-                //if( Selection.assetGUIDs.Length > 0 &&
-                //    string.Equals(selectItemGUID, Selection.assetGUIDs[0]) == false)
-                //{
-                //    selectItemGUID = Selection.assetGUIDs[0];
-                //    m_abEditor.SelectNode(selectItemGUID);
-                //}
+
                 BeginWindows();
                 m_abEditor.DrawNode();
                 EndWindows();
@@ -110,9 +101,6 @@ namespace ABInspector
 
         private void DrawNonZoomArea()
         {
-            //GUI.Box(new Rect(0.0f, 0.0f, 600.0f, 50.0f), "Adjust zoom of middle box with slider or mouse wheel.\nMove zoom area dragging with middle mouse button or Alt+left mouse button.");
-            //_zoom = EditorGUI.Slider(new Rect(0.0f, 50.0f, 600.0f, 25.0f), _zoom, kZoomMin, kZoomMax);
-            //GUI.Box(new Rect(0.0f, 300.0f - 25.0f, 600.0f, 25.0f), "Unzoomed Box");
             if (OrganizationTreeView != null)
             {
                 OrganizationTreeViewRect = new Rect(position.width - 300, 0, 300, position.height);
@@ -200,7 +188,6 @@ namespace ABInspector
             var xOffset = Mathf.Round(offsetX / Background.width) - 1;
             var yOffset = Mathf.Round(offsetY / Background.height) - 1;
             var texRect = new Rect(0, 0, Background.width, Background.height);
-            // if (isInstance && constellationScript.IsDifferentThanSource)
             GUI.color = (tint);
             for (var i = xOffset; i < xOffset + xCount; i++)
             {
@@ -213,42 +200,6 @@ namespace ABInspector
             }
             GUI.color = Color.white;
         }
-
-
-        //Rect nodeRect = new Rect(20, 20, 300, 300);
-        //private void DrawNode()
-        //{
-        //    BeginWindows();
-        //    int i = 0;
-
-        //    GUIStyle NoteStyle = GUI.skin.GetStyle("VCS_StickyNote");
-        //    nodeRect = GUI.Window(i, nodeRect, DrawNodeContent, "node", NoteStyle);
-        //    EndWindows();
-        //}
-        //private void DrawNodeContent(int id)
-        //{
-        //    GUI.Label(new Rect(10, 20, 100, 20), "1212");
-        //}
-
-        //private void DrawLink()
-        //{
-        //    Color color = Color.red;
-
-        //    Vector3 startPos = new Vector3(300, 300, 0);
-        //    Vector3 endPos = new Vector3(400, 520, 0);
-
-        //    Vector3 startTan = startPos + Vector3.right * 50;
-        //    Vector3 endTan = endPos + Vector3.left * 50;
-
-        //    var distance = Vector3.Distance(startPos, endPos);
-        //    if (distance < 100)
-        //    {
-        //        startTan = startPos + Vector3.right * (distance * 0.5f);
-        //        endTan = endPos + Vector3.left * (distance * 0.5f);
-        //    }
-
-        //    Handles.DrawBezier(startPos, endPos, startTan, endTan, color, null, 5);
-        //}
 
         private void OnSelectionChange()
         {

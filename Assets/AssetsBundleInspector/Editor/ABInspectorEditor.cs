@@ -29,55 +29,6 @@ namespace ABInspector
             links = new List<Link>();
             dataManager = new ABInspectorDataManager();
             handleQueque = new Queue<ABInspectorItemData>();
-
-            #region TEST
-            ////root
-            //m_testData = new List<ABInspectorItemData>();
-            //selectItem = new ABInspectorItemData();
-            //selectItem.Dependency = new List<string>();
-            //selectItem.ReverseDependency = new List<string>();
-            //selectItem.GUID = "root1";
-            //m_testData.Add(selectItem);
-            ////parent1-1 parent1-2
-            //var parent1_1 = new ABInspectorItemData();
-            //parent1_1.GUID = "parent1_1";
-            //parent1_1.Dependency = new List<string>();
-            //parent1_1.ReverseDependency = new List<string>();
-            //selectItem.ReverseDependency.Add(parent1_1.GUID);
-            //m_testData.Add(parent1_1);
-
-            //var parent1_2 = new ABInspectorItemData();
-            //parent1_2.GUID = "parent1_2";
-            //parent1_2.Dependency = new List<string>();
-            //parent1_2.ReverseDependency = new List<string>();
-            //selectItem.ReverseDependency.Add(parent1_2.GUID);
-            //m_testData.Add(parent1_2);
-            ////child 1-1 1-2
-            //var child1_1 = new ABInspectorItemData();
-            //child1_1.GUID = "child1_1";
-            //child1_1.Dependency = new List<string>();
-            //child1_1.ReverseDependency = new List<string>();
-            //selectItem.Dependency.Add(child1_1.GUID);
-            //m_testData.Add(child1_1);
-
-            //var child1_2 = new ABInspectorItemData();
-            //child1_2.GUID = "child1_2";
-            //child1_2.Dependency = new List<string>();
-            //child1_2.ReverseDependency = new List<string>();
-            //selectItem.Dependency.Add(child1_2.GUID);
-            //m_testData.Add(child1_2);
-            ////child 2-1
-            //var child2_1 = new ABInspectorItemData();
-            //child2_1.GUID = "child2_1";
-            //child2_1.Dependency = new List<string>();
-            //child2_1.ReverseDependency = new List<string>();
-            //child1_1.Dependency.Add(child2_1.GUID);
-            //m_testData.Add(child2_1);
-
-            //SelectNode(selectItem);
-            //int a = 1;
-            //Debug.Log(a); 
-            #endregion
         }
 
         public void Init()
