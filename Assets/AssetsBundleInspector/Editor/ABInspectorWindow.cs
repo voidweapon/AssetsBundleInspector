@@ -205,8 +205,9 @@ namespace ABInspector
         {
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
-            if (Selection.objects.Length > 0 &&
-                string.Equals(selectObj, Selection.objects[0]) == false)
+            if (Selection.objects.Length > 0 
+                && Selection.objects[0]  != null
+                && Equals(selectObj, Selection.objects[0]) == false)
             {
                 selectObj = Selection.objects[0];
                 string guid;
@@ -218,7 +219,6 @@ namespace ABInspector
                     OrganizationTreeView.Reload();
                     Repaint();
                 }
-
             }
             stopwatch.Stop();
             System.TimeSpan timeSpan = stopwatch.Elapsed;
